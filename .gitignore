@@ -1,0 +1,20 @@
+# Credentials and runtime state
+.env
+.env.*
+!.env.example
+secrets/
+data/
+local-data/
+*.sqlite*
+*.db
+*.log
+
+# Python and editor files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.idea/
+.vscode/

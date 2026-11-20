@@ -1,0 +1,41 @@
+services:
+  camp-bot:
+    build: .
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /tmp
+    environment:
+      DISCORD_BOT_TOKEN_FILE: /run/secrets/bot_token
+      DISCORD_WEBHOOK_URL_FILE: /run/secrets/webhook_url
+      DATABASE_PATH: /app/data/camp.sqlite3
+      HEARTBEAT_PATH: /app/data/heartbeat
+      EXPECTED_BOT_ID: "${EXPECTED_BOT_ID:-}"
+      FIRST_CHOICE_THRESHOLD: "${FIRST_CHOICE_THRESHOLD:-3}"
+      PROPOSAL_TITLE: "${PROPOSAL_TITLE:-春合宿のゼミ提案}"
+    secrets:
+      - bot_token
+      - webhook_url
+    volumes:
+      - camp-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import pathlib,time; p=pathlib.Path('/app/data/heartbeat'); assert p.exists() and time.time()-float(p.read_text())<240"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 120s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+secrets:
+  bot_token:
+    file: ./secrets/bot_token
+  webhook_url:
+    file: ./secrets/webhook_url
+volumes:
+  camp-data:
