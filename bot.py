@@ -32,7 +32,6 @@ class CampBot(discord.Client):
         # Embed contents are read through the owning webhook, not message-content intent.
         super().__init__(intents=intents, allowed_mentions=discord.AllowedMentions.none())
         self.webhook_url = webhook_url
-        self.title = os.environ.get('PROPOSAL_TITLE', '春合宿のゼミ提案')
         self.threshold = int(os.environ.get('FIRST_CHOICE_THRESHOLD', '3'))
         if self.threshold < 1:
             raise ValueError('成立目安人数は1以上にしてください。')
@@ -104,7 +103,7 @@ class CampBot(discord.Client):
     async def sync_message(self, message_id):
         # Ownership checked through the configured webhook before any mutation.
         source = await self.webhook.fetch_message(message_id)
-        if not source.embeds or not is_proposal(source.embeds[0].to_dict(), self.title):
+        if not source.embeds or not is_proposal(source.embeds[0].to_dict()):
             self.store.remove(message_id)
             return
         channel = await self.get_target_channel()

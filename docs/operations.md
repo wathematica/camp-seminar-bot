@@ -22,7 +22,6 @@ cp .env.example .env
 |---|---|
 | `FIRST_CHOICE_THRESHOLD` | `3`：緑色になる第一志望の人数 |
 | `EXPECTED_BOT_ID` | 空欄：任意。設定するとBot IDの取り違えを検出 |
-| `PROPOSAL_TITLE` | `春合宿のゼミ提案`：旧カードの固定見出しの識別用。新しいカードの見出しはフォームの名称 |
 
 秘密情報は `.env` に書かず、`configure.py` で入力します。
 

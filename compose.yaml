@@ -15,7 +15,6 @@ services:
       HEARTBEAT_PATH: /app/data/heartbeat
       EXPECTED_BOT_ID: "${EXPECTED_BOT_ID:-}"
       FIRST_CHOICE_THRESHOLD: "${FIRST_CHOICE_THRESHOLD:-3}"
-      PROPOSAL_TITLE: "${PROPOSAL_TITLE:-春合宿のゼミ提案}"
     secrets:
       - bot_token
       - webhook_url

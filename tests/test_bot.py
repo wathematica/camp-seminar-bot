@@ -12,12 +12,15 @@ from voting import count_votes, render_embed, is_proposal
 
 
 class RulesTest(unittest.TestCase):
-    def test_named_card_and_legacy_recognition(self):
-        named = {'title': '線形代数', 'fields': [{'name': '名称', 'value': '線形代数'}]}
-        self.assertTrue(is_proposal(named, '春合宿のゼミ提案'))
-        self.assertTrue(is_proposal({'title': '春合宿のゼミ提案'}, '春合宿のゼミ提案'))
-        self.assertFalse(is_proposal({'title': '別のお知らせ'}, '春合宿のゼミ提案'))
-        self.assertEqual(render_embed(named, [3, 0, 0])['title'], '線形代数')
+    def test_current_card_recognition(self):
+        named = {'title': '線形代数', 'description': '1️⃣ 第一志望　2️⃣ 第二志望　3️⃣ 第三志望',
+                 'fields': [{'name': '概要', 'value': '行列を学ぶ'}]}
+        self.assertTrue(is_proposal(named))
+        self.assertTrue(is_proposal(render_embed(named, [3, 0, 0])))
+        self.assertFalse(is_proposal({'title': '春合宿のゼミ提案'}))
+        self.assertFalse(is_proposal({'title': '線形代数', 'fields': [{'name': '名称', 'value': '線形代数'}]}))
+        self.assertFalse(is_proposal({'title': '別のお知らせ'}))
+        self.assertEqual(render_embed(named, [3, 0, 0])['fields'], named['fields'])
 
     def test_priority_and_withdrawal(self):
         self.assertEqual(count_votes([{1, 2, 3}, {2, 4}, {1, 4, 5}]), [3, 1, 1])
@@ -75,7 +78,7 @@ class IntegrationTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_sync_excludes_bot_and_burst_duplicates_preserves_fields(self):
         client = CampBot('https://discord.com/api/webhooks/123456789012345678/' + 'x' * 60)
-        original = discord.Embed(title='春合宿のゼミ提案')
+        original = discord.Embed(title='線形代数', description='1️⃣ 第一志望　2️⃣ 第二志望　3️⃣ 第三志望')
         original.add_field(name='概要', value='本文')
         source = SimpleNamespace(embeds=[original])
         client.webhook = SimpleNamespace(fetch_message=AsyncMock(return_value=source), edit_message=AsyncMock())
