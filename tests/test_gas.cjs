@@ -8,7 +8,7 @@ function createHarness(status = 200) {
   const properties = { DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/123/example', DISCORD_USE_CANARY: 'false' };
   const requests = [];
   const context = vm.createContext({
-    console: { log() {} },
+    console: { log() {}, error() {} },
     PropertiesService: { getScriptProperties: () => ({
       getProperty: key => properties[key],
       setProperty: (key, value) => { properties[key] = value; },
@@ -16,7 +16,7 @@ function createHarness(status = 200) {
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
     UrlFetchApp: { fetch: (url, options) => {
       requests.push({ url, payload: JSON.parse(options.payload) });
-      return { getResponseCode: () => status, getContentText: () => '{"id":"456"}' };
+      return { getResponseCode: () => status, getContentText: () => status === 429 ? '{"retry_after":60}' : '{"id":"456"}', getAllHeaders: () => ({'Retry-After':'60'}) };
     } },
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, '../gas/onSubmit.gs'), 'utf8'), context);
@@ -49,5 +49,13 @@ test('長すぎる名称は送信前に検出', () => {
 test('送信失敗を投稿済みとして記録しない', () => {
   const h = createHarness(403);
   assert.throws(() => h.submit(), /HTTP 403/);
+  assert.equal(h.properties['CAMP_POSTED_response-1'], undefined);
+});
+
+test('429後は指定待機時間中にDiscordへ再送しない', () => {
+  const h = createHarness(429);
+  assert.throws(() => h.submit(), /HTTP 429/);
+  assert.throws(() => h.submit(), /投稿待機中/);
+  assert.equal(h.requests.length, 1);
   assert.equal(h.properties['CAMP_POSTED_response-1'], undefined);
 });

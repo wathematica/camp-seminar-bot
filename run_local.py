@@ -16,7 +16,7 @@ async def run():
     print('GASの定期集計は停止したままにしてください。')
     print('秘密情報は非表示で入力し、ファイルには保存しません。')
     token = getpass.getpass('Botトークン: ').strip()
-    webhook = getpass.getpass('テスト投稿と同じWebhook URL: ').strip()
+    webhook = getpass.getpass('動作確認するチャンネルのWebhook URL: ').strip()
     if not token or not re.fullmatch(r'https://(?:canary\.)?discord\.com/api/(?:v\d+/)?webhooks/\d+/[A-Za-z0-9._-]+', webhook):
         print('入力形式を確認してください。')
         return
@@ -26,8 +26,11 @@ async def run():
         print('人数は1以上の整数を入力してください。')
         return
     os.environ['FIRST_CHOICE_THRESHOLD'] = threshold
-    os.environ['DATABASE_PATH'] = str(ROOT / 'local-data' / 'camp.sqlite3')
-    os.environ['HEARTBEAT_PATH'] = str(ROOT / 'local-data' / 'heartbeat')
+    # Webhookごとに保存先を分け、本番とテストの記録を混ぜない。
+    webhook_id = re.search(r'/webhooks/(\d+)/', webhook).group(1)
+    data_dir = ROOT / 'local-data' / webhook_id
+    os.environ['DATABASE_PATH'] = str(data_dir / 'camp.sqlite3')
+    os.environ['HEARTBEAT_PATH'] = str(data_dir / 'heartbeat')
     print(f'成立目安：第一志望{threshold}人。停止はControl+C。テスト中はこの画面を開いたままにしてください。')
     logger = logging.getLogger('camp')
     logger.setLevel(logging.INFO)
